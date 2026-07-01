@@ -1,0 +1,10 @@
+mat-toolbar {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+button.active {
+  font-weight: 700;
+  text-decoration: underline;
+}
