@@ -63,3 +63,7 @@ src/app/
 - [Angular 20](https://angular.dev/)
 - [Angular Material](https://material.angular.io/)
 - [Lorem Picsum API](https://picsum.photos/) — free photo placeholder service
+
+---
+
+> **Note:** This README was generated with the assistance of an LLM. Additionally, the unit tests were suggested by an LLM, though implemented by the author.
