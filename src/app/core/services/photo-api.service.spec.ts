@@ -1,7 +1,8 @@
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { PhotoApiService } from './photo-api.service';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('PhotoApiService', () => {
   let service: PhotoApiService;
@@ -18,8 +19,8 @@ describe('PhotoApiService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      providers: [PhotoApiService]
+      imports: [],
+      providers: [PhotoApiService, provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
     });
     service = TestBed.inject(PhotoApiService);
     httpMock = TestBed.inject(HttpTestingController);
@@ -29,7 +30,7 @@ describe('PhotoApiService', () => {
     httpMock.verify();
   });
 
-  it('requests the picsum v2 list endpoint with a page in range and the requested limit', fakeAsync(() => {
+  it('requests the picsum v2 list endpoint with a page within the dataset and the requested limit', fakeAsync(() => {
     service.getPhotos(24).subscribe();
 
     const req = httpMock.expectOne(r => r.url === 'https://picsum.photos/v2/list');
@@ -37,7 +38,7 @@ describe('PhotoApiService', () => {
 
     const page = Number(req.request.params.get('page'));
     expect(page).toBeGreaterThanOrEqual(1);
-    expect(page).toBeLessThanOrEqual(100);
+    expect(page).toBeLessThanOrEqual(39); // floor(950 totalPhotos / 24 limit)
     expect(req.request.params.get('limit')).toBe('24');
 
     req.flush([rawItem]);
@@ -69,5 +70,30 @@ describe('PhotoApiService', () => {
 
     tick(101);
     expect(emitted).toBeTrue();
+  }));
+
+  it('retries with a different page when picsum returns an empty page', fakeAsync(() => {
+    let result: any;
+    service.getPhotos(24).subscribe(photos => (result = photos));
+
+    httpMock.expectOne(r => r.url === 'https://picsum.photos/v2/list').flush([]);
+    tick(300);
+    httpMock.expectOne(r => r.url === 'https://picsum.photos/v2/list').flush([rawItem]);
+    tick(300);
+
+    expect(result.length).toBe(1);
+  }));
+
+  it('gives up after the max number of retries and emits an empty array', fakeAsync(() => {
+    let result: any;
+    service.getPhotos(24).subscribe(photos => (result = photos));
+
+    for (let i = 0; i < 4; i++) {
+      httpMock.expectOne(r => r.url === 'https://picsum.photos/v2/list').flush([]);
+      tick(300);
+    }
+
+    expect(result).toEqual([]);
+    httpMock.verify();
   }));
 });

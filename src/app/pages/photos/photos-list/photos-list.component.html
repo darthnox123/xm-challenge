@@ -1,0 +1,22 @@
+@let favoriteIds = favoriteIds$ | async;
+
+<div class="photo-grid">
+  @for (photo of photos; track photo.id) {
+    <app-photo-card
+      [photo]="photo"
+      [isFavorite]="favoriteIds?.has(photo.id) ?? false"
+      (select)="onPhotoSelected($event)"
+    ></app-photo-card>
+  }
+</div>
+
+@if (loading) {
+  <app-loading-spinner></app-loading-spinner>
+}
+
+@if (error && !loading) {
+  <div class="error-state">
+    <p>Couldn't load photos. Check your connection and try again.</p>
+    <button mat-button (click)="loadPhotos()">Retry</button>
+  </div>
+}
