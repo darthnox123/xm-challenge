@@ -1,0 +1,12 @@
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+  padding: 16px;
+}
+
+.empty-state {
+  padding: 32px;
+  text-align: center;
+  color: rgba(0, 0, 0, 0.6);
+}

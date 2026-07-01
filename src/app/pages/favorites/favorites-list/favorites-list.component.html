@@ -1,0 +1,15 @@
+@let favorites = favorites$ | async;
+
+@if (favorites?.length) {
+  <div class="photo-grid">
+    @for (photo of favorites; track photo.id) {
+      <app-photo-card
+        [photo]="photo"
+        [isFavorite]="true"
+        (select)="onPhotoSelected($event)"
+      ></app-photo-card>
+    }
+  </div>
+} @else {
+  <p class="empty-state">No favorites yet. Click a photo on the Photos screen to add it here.</p>
+}
